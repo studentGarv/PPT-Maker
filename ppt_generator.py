@@ -148,14 +148,6 @@ class PPTGenerator:
 def main():
     """Example usage of the PPTGenerator"""
     
-    # Test prompts
-    test_prompts = [
-        "Create a presentation about artificial intelligence and machine learning",
-        "Present the benefits of renewable energy",
-        "Explain the basics of Python programming for beginners",
-        "Create a business plan presentation for a tech startup"
-    ]
-    
     generator = PPTGenerator()
     
     # Test Ollama connection

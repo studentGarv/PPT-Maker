@@ -19,4 +19,4 @@ SLIDE_WIDTH = 10
 SLIDE_HEIGHT = 7.5
 
 # Output settings
-DEFAULT_OUTPUT_FILE = "generated_presentation.pptx"
+DEFAULT_OUTPUT_FILE = "generated_ppt.pptx"

@@ -25,10 +25,4 @@ echo Build complete!
 echo.
 echo The executable is located at: dist\PPT-Maker.exe
 echo.
-echo To distribute:
-echo 1. Copy dist\PPT-Maker.exe to any Windows computer
-echo 2. Make sure Ollama is installed on the target machine
-echo 3. Run: PPT-Maker.exe "Your presentation topic"
-echo.
 pause
-# Users can run: PPT-Maker.exe "Create a presentation about AI"
