@@ -10,7 +10,6 @@ if not exist "PPT-Maker-Portable\app" mkdir "PPT-Maker-Portable\app"
 echo Copying application files...
 copy "*.py" "PPT-Maker-Portable\app\"
 copy "requirements.txt" "PPT-Maker-Portable\app\"
-copy "README.md" "PPT-Maker-Portable\"
 
 echo Creating launcher script...
 (

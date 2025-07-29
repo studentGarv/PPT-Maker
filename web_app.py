@@ -1,15 +1,8 @@
-#!/usr/bin/env python3
-"""
-PPT Maker Web Interface
-A web-based interface for generating PowerPoint presentations
-"""
-
 import gradio as gr
 import os
 import tempfile
 from ppt_generator import PPTGenerator
 import traceback
-
 
 class PPTMakerWeb:
     def __init__(self):
@@ -92,7 +85,8 @@ class PPTMakerWeb:
                         model_input = gr.Dropdown(
                             choices=available_models,
                             value=available_models[0],
-                            label="AI Model"
+                            label="AI Model",
+                            allow_custom_value=True
                         )
                     
                     enhance_input = gr.Checkbox(
@@ -112,21 +106,7 @@ class PPTMakerWeb:
                     download_output = gr.File(
                         label="Download Presentation",
                         interactive=False
-                    )
-            
-            # Examples
-            gr.Markdown("## 💡 Example Topics")
-            gr.Examples(
-                examples=[
-                    ["Introduction to Machine Learning", 10, "llama3", True],
-                    ["Business Plan for Tech Startup", 12, "llama3", True],
-                    ["Climate Change Solutions", 8, "llama3", False],
-                    ["Python Programming Basics", 15, "llama3", True],
-                    ["Digital Marketing Strategies", 9, "llama3", True]
-                ],
-                inputs=[prompt_input, slides_input, model_input, enhance_input]
-            )
-            
+                    )            
             # Setup event handler
             generate_btn.click(
                 fn=self.generate_presentation_web,
@@ -147,7 +127,7 @@ def main():
     
     # Launch with public access
     interface.launch(
-        server_name="0.0.0.0",  # Allow external access
+        server_name="localhost",  # Allow external access
         server_port=7860,
         share=True,  # Create public link
         show_error=True

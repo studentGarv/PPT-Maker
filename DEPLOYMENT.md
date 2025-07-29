@@ -68,12 +68,6 @@ PPT-Maker.exe "Create a presentation about AI"
 ```bash
 # Using Docker
 docker-compose up -d
-
-# Or deploy to cloud platforms:
-# - Heroku
-# - AWS
-# - Google Cloud
-# - Azure
 ```
 
 **User Instructions:**
@@ -83,24 +77,10 @@ docker-compose up -d
 
 ---
 
-## 📋 **Comparison Table**
-
-| Option | Setup Difficulty | User Experience | Best For |
-|--------|------------------|-----------------|----------|
-| **Executable** | Easy | Download & run | Individual users |
-| **Web App** | Medium | Browser-based | Small teams |
-| **Portable** | Medium | Complete package | Offline use |
-| **Cloud** | Hard | Enterprise-grade | Organizations |
-
----
-
-## 🚀 **Quick Start for Each Option**
-
 ### **For Individual Users (Executable):**
 ```bash
 # Creator:
 build_executable.bat
-
 # User:
 # 1. Install Ollama
 # 2. Run PPT-Maker.exe "your topic"
@@ -110,7 +90,6 @@ build_executable.bat
 ```bash
 # Creator:
 python web_app.py
-
 # Users:
 # Open browser -> http://your-server:7860
 ```
@@ -135,18 +114,3 @@ docker-compose up -d
 ```
 
 ---
-
-## 💡 **Recommendations**
-
-**Choose based on your needs:**
-
-- **🏠 Personal Use:** Standalone Executable
-- **👥 Small Team:** Web Application
-- **📦 Distribution:** Portable Package
-- **🏢 Enterprise:** Cloud Deployment
-
-**Pro Tips:**
-- Always include clear user instructions
-- Test on target machines before distribution
-- Provide support contact information
-- Consider creating video tutorials for non-technical users

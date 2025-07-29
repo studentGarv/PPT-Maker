@@ -30,6 +30,7 @@ pip install -r requirements.txt
 
 # Pull a model (example)
 ollama pull llama3
+ollama serve
 ```
 
 ## Usage
@@ -37,17 +38,6 @@ ollama pull llama3
 ### Command Line Interface
 ```bash
 python ppt_maker.py "Create a presentation about artificial intelligence"
-```
-
-### Python Script
-```python
-from ppt_generator import PPTGenerator
-
-generator = PPTGenerator(model="llama3")
-generator.generate_presentation(
-    prompt="Create a presentation about machine learning",
-    output_file="ml_presentation.pptx"
-)
 ```
 
 ## Configuration
