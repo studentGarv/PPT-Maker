@@ -55,7 +55,7 @@ echo 2. Extract to: PPT-Maker-Portable\python\
 echo.
 echo #### Ollama Portable:
 echo 1. Download Ollama for Windows from:
-echo    https://ollama.ai/download
+echo    https://github.com/ollama/ollama/releases/download/v0.11.4/ollama-windows-amd64.zip
 echo 2. Extract/copy ollama.exe to: PPT-Maker-Portable\ollama\
 echo.
 echo ### 2. Install Python Dependencies

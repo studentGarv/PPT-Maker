@@ -2,12 +2,12 @@
 
 # Ollama settings
 OLLAMA_BASE_URL = "http://localhost:11434"
-DEFAULT_MODEL = "llama3"
+DEFAULT_MODEL = "gpt-oss:20b"
 
 # Presentation settings
 DEFAULT_SLIDES_COUNT = 8
 MAX_SLIDES_COUNT = 20
-MIN_SLIDES_COUNT = 4
+MIN_SLIDES_COUNT = 2
 
 # Slide content limits
 MAX_TITLE_LENGTH = 100
