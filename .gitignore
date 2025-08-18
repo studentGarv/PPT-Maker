@@ -54,9 +54,21 @@ venv.bak/
 *.swo
 *~
 
+# Gradio
+.gradio/
+
 # Generated files
+# PowerPoint files
 *.pptx
+*.ppt
 *.log
+*.tmp
+
+# Build artifacts
+*.exe
+*.msi
+build/
+dist/
 
 # OS
 .DS_Store
@@ -66,3 +78,11 @@ venv.bak/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Windows
+*.lnk
+desktop.ini
+
+# PowerPoint temporary files
+~$*.pptx
+~$*.ppt
