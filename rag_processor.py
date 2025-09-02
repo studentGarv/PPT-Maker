@@ -8,7 +8,14 @@ import re
 from dataclasses import dataclass
 
 from pptx import Presentation
-import PyPDF2
+# Try to import PyPDF2, make it optional
+try:
+    import PyPDF2
+    HAS_PDF_SUPPORT = True
+except ImportError:
+    HAS_PDF_SUPPORT = False
+    print("Warning: PyPDF2 not available. PDF processing disabled.")
+
 from urllib.parse import urlparse
 import ollama
 
@@ -105,6 +112,10 @@ class RAGProcessor:
     def _extract_from_pdf(self, file_path: str) -> List[DocumentChunk]:
         """Extract text from PDF files"""
         chunks = []
+        
+        if not HAS_PDF_SUPPORT:
+            print(f"PDF support not available. Skipping {file_path}")
+            return chunks
         
         try:
             with open(file_path, 'rb') as file:

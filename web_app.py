@@ -118,9 +118,9 @@ class PPTMakerWeb:
         """Get list of available Ollama models"""
         try:
             models = self.generator.list_available_models()
-            return models if models else ["llama3"]
+            return models if models else ["gpt-oss:20b"]
         except:
-            return ["llama3", "mistral", "llama2"]
+            return ["gpt-oss:20b", "llama3", "mistral"]
     
     def create_interface(self):
         """Create Gradio web interface"""

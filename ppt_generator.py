@@ -1,6 +1,6 @@
 from ollama_client import OllamaClient
 from pptx_generator import PPTXGenerator
-from config import DEFAULT_SLIDES_COUNT, DEFAULT_OUTPUT_FILE, MAX_SLIDES_COUNT, MIN_SLIDES_COUNT
+from config import DEFAULT_SLIDES_COUNT, DEFAULT_OUTPUT_FILE, MAX_SLIDES_COUNT, MIN_SLIDES_COUNT, DEFAULT_MODEL
 from typing import Optional
 import os
 
@@ -11,7 +11,7 @@ class PPTGenerator:
     def __init__(self, model: str = None, ollama_url: str = None):
         self.ollama_client = OllamaClient(
             base_url=ollama_url if ollama_url else "http://localhost:11434",
-            model=model if model else "llama3"
+            model=model if model else DEFAULT_MODEL
         )
         self.pptx_generator = PPTXGenerator()
     

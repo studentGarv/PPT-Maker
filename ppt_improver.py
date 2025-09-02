@@ -278,7 +278,7 @@ def improve_ppt(
     input_path: str,
     output_path: str,
     template: Optional[str] = None,
-    outline_model: str = "llama3",
+    outline_model: str = "gpt-oss:20b",
     embed_model: str = "nomic-embed-text",
     dedup_threshold: float = 0.85
 ):
@@ -300,6 +300,6 @@ if __name__ == "__main__":
     improve_ppt(
         "old.pptx",
         "improved.pptx",
-        outline_model="llama3",
+        outline_model="gpt-oss:20b",
         embed_model="nomic-embed-text"
     )
