@@ -6,6 +6,14 @@ from dataclasses import dataclass
 from pptx import Presentation
 import ollama  # Uses installed ollama client
 
+# Import config for default models
+try:
+    from config import DEFAULT_MODEL
+    DEFAULT_EMBED_MODEL = "nomic-embed-text"
+except ImportError:
+    DEFAULT_MODEL = "gpt-oss:20b"
+    DEFAULT_EMBED_MODEL = "nomic-embed-text"
+
 @dataclass
 class SlideData:
     index: int
@@ -278,8 +286,8 @@ def improve_ppt(
     input_path: str,
     output_path: str,
     template: Optional[str] = None,
-    outline_model: str = "gpt-oss:20b",
-    embed_model: str = "nomic-embed-text",
+    outline_model: str = DEFAULT_MODEL,
+    embed_model: str = DEFAULT_EMBED_MODEL,
     dedup_threshold: float = 0.85
 ):
     """
@@ -296,10 +304,94 @@ def improve_ppt(
     build_new_ppt(outline, template, output_path)
 
 if __name__ == "__main__":
-    # Example usage
-    improve_ppt(
-        "old.pptx",
-        "improved.pptx",
-        outline_model="gpt-oss:20b",
-        embed_model="nomic-embed-text"
+    import argparse
+    import os
+    
+    parser = argparse.ArgumentParser(
+        description="Improve existing PowerPoint presentations using AI",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  %(prog)s input.pptx output.pptx
+  %(prog)s old.pptx improved.pptx --outline-model llama3
+  %(prog)s presentation.pptx enhanced.pptx --embed-model all-minilm --threshold 0.9
+        """
     )
+    
+    parser.add_argument(
+        "input_path",
+        help="Path to the input PowerPoint file"
+    )
+    
+    parser.add_argument(
+        "output_path",
+        help="Path for the improved PowerPoint file"
+    )
+    
+    parser.add_argument(
+        "--outline-model",
+        default=DEFAULT_MODEL,
+        help=f"Model for outline generation (default: {DEFAULT_MODEL})"
+    )
+    
+    parser.add_argument(
+        "--embed-model",
+        default=DEFAULT_EMBED_MODEL,
+        help=f"Model for embeddings (default: {DEFAULT_EMBED_MODEL})"
+    )
+    
+    parser.add_argument(
+        "--template",
+        help="Optional PowerPoint template file"
+    )
+    
+    parser.add_argument(
+        "--threshold",
+        type=float,
+        default=0.85,
+        help="Deduplication threshold (0.0-1.0, default: 0.85)"
+    )
+    
+    parser.add_argument(
+        "-v", "--verbose",
+        action="store_true",
+        help="Enable verbose output"
+    )
+    
+    args = parser.parse_args()
+    
+    # Validate input file exists
+    if not os.path.exists(args.input_path):
+        print(f"❌ Error: Input file '{args.input_path}' not found")
+        exit(1)
+    
+    if args.verbose:
+        print(f"Input file: {args.input_path}")
+        print(f"Output file: {args.output_path}")
+        print(f"Outline model: {args.outline_model}")
+        print(f"Embed model: {args.embed_model}")
+        print(f"Threshold: {args.threshold}")
+        if args.template:
+            print(f"Template: {args.template}")
+        print()
+    
+    print(f"🔧 Improving presentation: {args.input_path}")
+    
+    try:
+        improve_ppt(
+            input_path=args.input_path,
+            output_path=args.output_path,
+            template=args.template,
+            outline_model=args.outline_model,
+            embed_model=args.embed_model,
+            dedup_threshold=args.threshold
+        )
+        
+        print(f"✅ Improved presentation saved to: {args.output_path}")
+        
+    except Exception as e:
+        print(f"❌ Error improving presentation: {e}")
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        exit(1)

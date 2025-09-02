@@ -91,7 +91,7 @@ Analyze and enhance existing PowerPoint presentations:
 - Enhanced `web_app.py`: Updated UI with new features
 
 ### Models Used:
-- **Generation**: llama3, mistral, or custom models
+- **Generation**: gpt-oss:20b (default), llama3, mistral, or custom models
 - **Embeddings**: nomic-embed-text (default)
 - **Configurable**: All models can be changed in the interface
 
@@ -100,7 +100,7 @@ Analyze and enhance existing PowerPoint presentations:
 1. **Start Ollama**: Make sure Ollama is running (`ollama serve`)
 2. **Install Models**: 
    ```bash
-   ollama pull llama3
+   ollama pull gpt-oss:20b
    ollama pull nomic-embed-text
    ```
 3. **Run Web App**: `python web_app.py`

@@ -19,6 +19,13 @@ except ImportError:
 from urllib.parse import urlparse
 import ollama
 
+# Import config for default embed model
+try:
+    from config import DEFAULT_MODEL
+    DEFAULT_EMBED_MODEL = "nomic-embed-text"
+except ImportError:
+    DEFAULT_EMBED_MODEL = "nomic-embed-text"
+
 @dataclass
 class DocumentChunk:
     content: str
@@ -29,7 +36,7 @@ class DocumentChunk:
 class RAGProcessor:
     """Retrieval-Augmented Generation processor for PPT creation"""
     
-    def __init__(self, embed_model: str = "nomic-embed-text"):
+    def __init__(self, embed_model: str = DEFAULT_EMBED_MODEL):
         self.embed_model = embed_model
         self.chunks: List[DocumentChunk] = []
         self.embeddings_cache: Dict[str, List[float]] = {}

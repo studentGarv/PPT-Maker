@@ -8,18 +8,22 @@ import argparse
 import sys
 import os
 from ppt_generator import PPTGenerator
-from config import DEFAULT_SLIDES_COUNT, DEFAULT_OUTPUT_FILE, MAX_SLIDES_COUNT, MIN_SLIDES_COUNT
+from config import DEFAULT_SLIDES_COUNT, DEFAULT_OUTPUT_FILE, MAX_SLIDES_COUNT, MIN_SLIDES_COUNT, DEFAULT_MODEL
 
 
 def main():
     parser = argparse.ArgumentParser(
         description="Generate PowerPoint presentations from text prompts using AI",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
+        epilog=f"""
 Examples:
   %(prog)s "Create a presentation about artificial intelligence"
   %(prog)s "Business plan for a tech startup" --output "startup.pptx" --slides 10
   %(prog)s "Python programming basics" --model "mistral" --no-enhance
+  %(prog)s --list-models
+  %(prog)s --test-connection
+
+Current default model: {DEFAULT_MODEL}
         """
     )
     
@@ -44,8 +48,8 @@ Examples:
     
     parser.add_argument(
         "-m", "--model",
-        default="llama3",
-        help="Ollama model to use (default: llama3)"
+        default=DEFAULT_MODEL,
+        help=f"Ollama model to use (default: {DEFAULT_MODEL})"
     )
     
     parser.add_argument(
@@ -58,6 +62,12 @@ Examples:
         "--no-enhance",
         action="store_true",
         help="Skip content enhancement (faster but less detailed)"
+    )
+    
+    parser.add_argument(
+        "--list-models",
+        action="store_true",
+        help="List all available Ollama models"
     )
     
     parser.add_argument(
@@ -97,9 +107,25 @@ Examples:
             return 1
         return 0
     
-    # Validate prompt is provided when not testing connection
-    if not args.prompt:
-        print("❌ Error: Prompt is required when not using --test-connection")
+    # List models if requested
+    if args.list_models:
+        print("Listing available Ollama models...")
+        models = generator.list_available_models()
+        if models:
+            print("Available models:")
+            for model in models:
+                prefix = "* " if model == DEFAULT_MODEL else "  "
+                print(f"{prefix}{model}")
+            print(f"\nDefault model: {DEFAULT_MODEL}")
+        else:
+            print("No models found or error connecting to Ollama")
+            print("Make sure Ollama is running with: ollama serve")
+            return 1
+        return 0
+    
+    # Validate prompt is provided when not testing connection or listing models
+    if not args.prompt and not args.test_connection and not args.list_models:
+        print("❌ Error: Prompt is required")
         parser.print_help()
         return 1
     

@@ -51,9 +51,10 @@ pip install -r requirements.txt
 # Install Ollama (visit https://ollama.ai for platform-specific instructions)
 
 # Pull required models
-ollama pull llama3
+ollama pull gpt-oss:20b
 ollama pull nomic-embed-text
 ollama pull mistral
+ollama pull llama3
 
 # Start Ollama server
 ollama serve
@@ -85,7 +86,7 @@ python web_app.py
 
 #### Basic Presentation Generation
 ```bash
-# Simple generation
+# Simple generation (uses current default model from config)
 python ppt_maker.py "Create a presentation about artificial intelligence"
 
 # Specify number of slides
@@ -95,13 +96,26 @@ python ppt_maker.py "Business strategy overview" --slides 10
 python ppt_maker.py "Data science fundamentals" --output "data_science.pptx"
 
 # Use different AI model
-python ppt_maker.py "Climate change solutions" --model "mistral"
+python ppt_maker.py "Climate change solutions" --model "llama3"
 
 # Disable content enhancement for faster generation
 python ppt_maker.py "Quick company overview" --no-enhance
 
 # Verbose output for debugging
 python ppt_maker.py "Detailed analysis" --verbose
+```
+
+#### Model Management
+```bash
+# List all available models
+python ppt_maker.py --list-models
+
+# Test Ollama connection
+python ppt_maker.py --test-connection
+
+# Install new models
+ollama pull model-name
+ollama list
 ```
 
 #### Testing and Diagnostics
@@ -118,11 +132,17 @@ python ppt_maker.py --status
 
 #### Presentation Improvement
 ```bash
-# Improve existing presentation
+# Improve existing presentation (uses current default model from config)
 python ppt_improver.py input.pptx output_improved.pptx
 
 # With custom models
-python ppt_improver.py input.pptx output.pptx --outline-model llama3 --embed-model nomic-embed-text
+python ppt_improver.py input.pptx output.pptx --outline-model llama3 --embed-model all-minilm
+
+# With custom threshold and verbose output
+python ppt_improver.py input.pptx output.pptx --threshold 0.9 --verbose
+
+# Using a template
+python ppt_improver.py input.pptx output.pptx --template custom_template.pptx
 ```
 
 #### RAG Processing
@@ -142,7 +162,7 @@ processor.process_uploaded_files(["doc1.pdf", "doc2.pptx"])
 ```python
 from ppt_generator import PPTGenerator
 
-generator = PPTGenerator(model="llama3")
+generator = PPTGenerator(model="gpt-oss:20b")
 success = generator.generate_presentation(
     prompt="Artificial Intelligence in Healthcare",
     output_file="ai_healthcare.pptx",
@@ -177,7 +197,7 @@ from ppt_improver import improve_ppt
 improve_ppt(
     input_path="old_presentation.pptx",
     output_path="improved_presentation.pptx",
-    outline_model="llama3",
+    outline_model="gpt-oss:20b",
     embed_model="nomic-embed-text"
 )
 ```
@@ -195,8 +215,8 @@ OLLAMA_BASE_URL = "http://localhost:11434"
 ```
 
 ### Available Models
-- **Text Generation**: llama3, mistral, llama2, codellama
-- **Embeddings**: nomic-embed-text, all-minilm
+- **Text Generation**: gpt-oss:20b (default), llama3, mistral, llama2, codellama
+- **Embeddings**: nomic-embed-text (default), all-minilm
 - **Custom Models**: Any Ollama-compatible model
 
 ## 📁 Project Structure
@@ -241,7 +261,7 @@ python ppt_maker.py --test-connection
 ollama list
 
 # Pull missing model
-ollama pull llama3
+ollama pull gpt-oss:20b
 ```
 
 3. **Dependencies Issues**

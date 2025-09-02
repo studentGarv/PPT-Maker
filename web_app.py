@@ -4,6 +4,7 @@ import tempfile
 from ppt_generator import PPTGenerator
 from rag_processor import RAGProcessor
 from ppt_improver import improve_ppt
+from config import DEFAULT_MODEL
 import traceback
 
 class PPTMakerWeb:
@@ -118,9 +119,16 @@ class PPTMakerWeb:
         """Get list of available Ollama models"""
         try:
             models = self.generator.list_available_models()
-            return models if models else ["gpt-oss:20b"]
+            if models:
+                # Ensure default model is first in the list
+                if DEFAULT_MODEL in models:
+                    models.remove(DEFAULT_MODEL)
+                    models.insert(0, DEFAULT_MODEL)
+                return models
+            else:
+                return [DEFAULT_MODEL, "llama3", "mistral"]
         except:
-            return ["gpt-oss:20b", "llama3", "mistral"]
+            return [DEFAULT_MODEL, "llama3", "mistral"]
     
     def create_interface(self):
         """Create Gradio web interface"""
@@ -131,6 +139,7 @@ class PPTMakerWeb:
         with gr.Blocks(title="PPT Maker", theme=gr.themes.Soft()) as interface:
             gr.Markdown("# 🎯 PPT Maker")
             gr.Markdown("Generate professional PowerPoint presentations from text prompts using AI")
+            gr.Markdown(f"**Default AI Model:** {DEFAULT_MODEL} | **Embedding Model:** nomic-embed-text")
             
             with gr.Tabs():
                 # Tab 1: Create New Presentation
@@ -155,7 +164,7 @@ class PPTMakerWeb:
                                 model_input = gr.Dropdown(
                                     choices=available_models,
                                     value=available_models[0],
-                                    label="AI Model",
+                                    label=f"AI Model (Default: {DEFAULT_MODEL})",
                                     allow_custom_value=True
                                 )
                             
@@ -231,7 +240,7 @@ class PPTMakerWeb:
                             improve_model_input = gr.Dropdown(
                                 choices=available_models,
                                 value=available_models[0],
-                                label="AI Model for Analysis",
+                                label=f"AI Model for Analysis (Default: {DEFAULT_MODEL})",
                                 allow_custom_value=True
                             )
                             
@@ -258,6 +267,74 @@ class PPTMakerWeb:
                                 4. Creates cleaner, more concise bullet points
                                 5. Generates a new presentation with improved flow
                                 """)
+                
+                # Tab 3: Configuration & Settings
+                with gr.Tab("⚙️ Configuration"):
+                    with gr.Row():
+                        with gr.Column():
+                            gr.Markdown("### Current Configuration")
+                            gr.Markdown(f"""
+                            **Default Settings:**
+                            - **Text Generation Model:** `{DEFAULT_MODEL}`
+                            - **Embedding Model:** `nomic-embed-text`
+                            - **Default Slides:** 8
+                            - **Max Slides:** 20
+                            - **Ollama URL:** http://localhost:11434
+                            
+                            **Available Models:**
+                            """)
+                            
+                            def get_model_list():
+                                try:
+                                    models = self.generator.list_available_models()
+                                    if models:
+                                        model_text = "\n".join([f"- {model} {'(Default)' if model == DEFAULT_MODEL else ''}" for model in models])
+                                        return f"**Installed Models:**\n{model_text}"
+                                    else:
+                                        return "**No models found** - Please ensure Ollama is running"
+                                except:
+                                    return "**Error connecting to Ollama** - Please check your setup"
+                            
+                            model_status = gr.Markdown(get_model_list())
+                            
+                            refresh_btn = gr.Button("🔄 Refresh Model List", variant="secondary")
+                            
+                            def refresh_models():
+                                return get_model_list()
+                            
+                            refresh_btn.click(fn=refresh_models, outputs=[model_status])
+                        
+                        with gr.Column():
+                            gr.Markdown("### How to Change Models")
+                            gr.Markdown("""
+                            **To use different models:**
+                            
+                            **In Web Interface:**
+                            - Select different models from the dropdown in Create/Improve tabs
+                            - Models are automatically detected from your Ollama installation
+                            
+                            **Via Command Line:**
+                            ```bash
+                            # Use custom model for generation
+                            python ppt_maker.py "topic" --model llama3
+                            
+                            # Use custom model for improvement
+                            python ppt_improver.py input.pptx output.pptx --outline-model mistral
+                            
+                            # List available models
+                            python ppt_maker.py --list-models
+                            ```
+                            
+                            **Install New Models:**
+                            ```bash
+                            ollama pull model-name
+                            ollama list  # verify installation
+                            ```
+                            
+                            **Supported Model Types:**
+                            - **Text Generation:** llama3, mistral, codellama, etc.
+                            - **Embeddings:** nomic-embed-text, all-minilm, etc.
+                            """)
             
             # Setup event handlers
             generate_btn.click(
