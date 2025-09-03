@@ -4,13 +4,34 @@ import tempfile
 from ppt_generator import PPTGenerator
 from rag_processor import RAGProcessor
 from ppt_improver import improve_ppt
-from config import DEFAULT_MODEL, get_timestamped_filename, get_improved_filename
+from ai_client_manager import AIClientManager, get_client_info
+from config import DEFAULT_MODEL, AI_PROVIDERS, DEFAULT_AI_PROVIDER, get_timestamped_filename, get_improved_filename
 import traceback
 
 class PPTMakerWeb:
-    def __init__(self):
-        self.generator = PPTGenerator()
+    def __init__(self, ai_provider=None):
+        # Initialize with auto-detection or specified provider
+        if ai_provider:
+            self.generator = PPTGenerator(ai_provider=ai_provider)
+        else:
+            # Auto-detect best available provider
+            self.generator = PPTGenerator()
+            
         self.rag_processor = RAGProcessor()
+        
+        # Get AI client info for display
+        self.ai_info = get_client_info(self.generator.ai_client)
+    
+    def get_ai_provider_info(self):
+        """Get information about current AI provider"""
+        return f"🤖 AI Provider: {self.ai_info['provider'].title()} {'✅' if self.ai_info['connected'] else '❌'}"
+    
+    def get_available_models(self):
+        """Get list of available models"""
+        try:
+            return self.generator.list_available_models()
+        except:
+            return [DEFAULT_MODEL]
     
     def generate_presentation_web(self, prompt, num_slides, model_name, enhance_content, uploaded_files, urls_text, use_rag):
         """Generate presentation through web interface"""
@@ -21,9 +42,9 @@ class PPTMakerWeb:
             if num_slides < 2 or num_slides > 20:
                 return None, "❌ Number of slides must be between 2 and 20"
             
-            # Test Ollama connection
-            if not self.generator.test_ollama_connection():
-                return None, "❌ Cannot connect to Ollama. Please make sure Ollama is running with: ollama serve"
+            # Test AI service connection
+            if not self.generator.test_connection():
+                return None, "❌ Cannot connect to AI service. Please check that your AI service is running."
             
             # Process uploaded reference materials if enabled
             enhanced_prompt = prompt
@@ -162,6 +183,7 @@ class PPTMakerWeb:
             gr.Markdown("# 🎯 PPT Maker")
             gr.Markdown("Generate professional PowerPoint presentations from text prompts using AI")
             gr.Markdown(f"**Default AI Model:** {DEFAULT_MODEL} | **Embedding Model:** nomic-embed-text")
+            gr.Markdown(f"**{self.get_ai_provider_info()}**")
             
             with gr.Tabs():
                 # Tab 1: Create New Presentation

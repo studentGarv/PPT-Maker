@@ -1,9 +1,26 @@
 # Configuration settings for PPT Maker
 import datetime
 
-# Ollama settings
-OLLAMA_BASE_URL = "http://localhost:11434"
-DEFAULT_MODEL = "gpt-oss:20b"
+# AI Provider settings
+AI_PROVIDERS = {
+    "ollama": {
+        "name": "Ollama",
+        "base_url": "http://localhost:11434",
+        "default_model": "gpt-oss:20b"
+    },
+    "lm_studio": {
+        "name": "LM Studio", 
+        "base_url": "http://localhost:1234",
+        "default_model": None  # Uses loaded model
+    }
+}
+
+# Default AI provider (can be overridden)
+DEFAULT_AI_PROVIDER = "ollama"
+
+# Legacy settings for backward compatibility
+OLLAMA_BASE_URL = AI_PROVIDERS["ollama"]["base_url"]
+DEFAULT_MODEL = AI_PROVIDERS["ollama"]["default_model"]
 
 # Presentation settings
 DEFAULT_SLIDES_COUNT = 8

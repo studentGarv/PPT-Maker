@@ -1,6 +1,6 @@
-from ollama_client import OllamaClient
+from ai_client_manager import AIClientManager
 from pptx_generator import PPTXGenerator
-from config import DEFAULT_SLIDES_COUNT, DEFAULT_OUTPUT_FILE, MAX_SLIDES_COUNT, MIN_SLIDES_COUNT, DEFAULT_MODEL
+from config import DEFAULT_SLIDES_COUNT, DEFAULT_OUTPUT_FILE, MAX_SLIDES_COUNT, MIN_SLIDES_COUNT, DEFAULT_MODEL, DEFAULT_AI_PROVIDER
 from typing import Optional
 import os
 
@@ -8,11 +8,32 @@ import os
 class PPTGenerator:
     """Main class for generating PowerPoint presentations from text prompts"""
     
-    def __init__(self, model: str = None, ollama_url: str = None):
-        self.ollama_client = OllamaClient(
-            base_url=ollama_url if ollama_url else "http://localhost:11434",
-            model=model if model else DEFAULT_MODEL
-        )
+    def __init__(self, model: str = None, ai_provider: str = None, base_url: str = None):
+        """
+        Initialize PPT Generator with configurable AI provider
+        
+        Args:
+            model (str): Model name to use
+            ai_provider (str): AI provider ('ollama' or 'lm_studio')
+            base_url (str): Base URL for the AI service
+        """
+        # Use provided provider or default
+        provider = ai_provider or DEFAULT_AI_PROVIDER
+        
+        # Prepare client configuration
+        client_config = {}
+        if base_url:
+            client_config['base_url'] = base_url
+        if model:
+            client_config['model'] = model
+        
+        # Initialize AI client manager
+        try:
+            self.ai_client = AIClientManager.create_client(provider, **client_config)
+        except Exception as e:
+            print(f"⚠️ Error with {provider}, trying auto-detection: {e}")
+            self.ai_client = AIClientManager.auto_detect_provider(**client_config)
+        
         self.pptx_generator = PPTXGenerator()
     
     def generate_presentation(
@@ -45,8 +66,8 @@ class PPTGenerator:
             
             print(f"Generating presentation outline for: '{prompt}'...")
             
-            # Generate presentation outline using Ollama
-            outline = self.ollama_client.generate_presentation_outline(prompt, num_slides)
+            # Generate presentation outline using AI client
+            outline = self.ai_client.generate_presentation_outline(prompt, num_slides)
             
             if not outline or 'slides' not in outline:
                 raise ValueError("Failed to generate presentation outline")
@@ -73,7 +94,7 @@ class PPTGenerator:
                 # Enhance content if requested
                 if enhance_content and slide_content:
                     print(f"Enhancing content for slide: '{slide_title}'")
-                    enhanced_content = self.ollama_client.enhance_slide_content(
+                    enhanced_content = self.ai_client.enhance_slide_content(
                         slide_title, 
                         slide_content
                     )
@@ -125,21 +146,18 @@ class PPTGenerator:
             print(f"❌ Error generating presentation: {e}")
             return False
     
-    def test_ollama_connection(self) -> bool:
-        """Test if Ollama is accessible"""
+    def test_connection(self) -> bool:
+        """Test if AI service is accessible"""
         try:
-            # Try a simple generation to test connection
-            test_outline = self.ollama_client.generate_presentation_outline("test", 1)
-            return test_outline is not None
+            return self.ai_client.test_connection()
         except Exception as e:
-            print(f"Ollama connection test failed: {e}")
+            print(f"AI service connection test failed: {e}")
             return False
     
     def list_available_models(self) -> list:
-        """List available Ollama models"""
+        """List available models from AI service"""
         try:
-            response = self.ollama_client.client.list()
-            return [model['name'] for model in response['models']]
+            return self.ai_client.get_available_models()
         except Exception as e:
             print(f"Error listing models: {e}")
             return []
@@ -150,13 +168,14 @@ def main():
     
     generator = PPTGenerator()
     
-    # Test Ollama connection
-    if not generator.test_ollama_connection():
-        print("❌ Cannot connect to Ollama. Please make sure Ollama is running.")
-        print("Start Ollama with: ollama serve")
+    # Test AI service connection
+    if not generator.test_connection():
+        print("❌ Cannot connect to AI service. Please make sure your AI service is running.")
+        print("For Ollama: ollama serve")
+        print("For LM Studio: Start LM Studio and load a model")
         return
     
-    print("✅ Connected to Ollama successfully!")
+    print("✅ Connected to AI service successfully!")
     
     # List available models
     models = generator.list_available_models()
@@ -164,7 +183,7 @@ def main():
         print(f"Available models: {', '.join(models)}")
     
     # Generate a test presentation
-    test_prompt = test_prompts[0]
+    test_prompt = "Artificial Intelligence and Machine Learning: Fundamentals and Applications"
     output_file = "ai_ml_presentation.pptx"
     
     success = generator.generate_presentation(
