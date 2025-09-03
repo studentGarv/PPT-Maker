@@ -4,7 +4,12 @@ import tempfile
 from ppt_generator import PPTGenerator
 from rag_processor import RAGProcessor
 from ppt_improver import improve_ppt
-from config import DEFAULT_MODEL
+from config import DEFAULT_MODEL, get_timestam                                urls_input = gr.Textbox(
+                                    label="Reference URLs (one per line)",
+                                    placeholder="https://example.com/reference-material\nhttps://another-site.com/layout",
+                                    lines=3,
+                                    visible=False
+                                )lename, get_improved_filename
 import traceback
 
 class PPTMakerWeb:
@@ -59,9 +64,13 @@ class PPTMakerWeb:
                     print(f"RAG processing error: {e}")
                     print("Continuing with original prompt...")
             
-            # Create temporary file
+            # Create temporary file with timestamped name
+            timestamped_name = get_timestamped_filename("presentation")
             with tempfile.NamedTemporaryFile(suffix='.pptx', delete=False) as tmp_file:
                 output_path = tmp_file.name
+            
+            # Rename to have a meaningful timestamped name for download
+            meaningful_path = os.path.join(os.path.dirname(output_path), timestamped_name)
             
             # Update model if different
             if model_name != self.generator.ollama_client.model:
@@ -76,8 +85,15 @@ class PPTMakerWeb:
             )
             
             if success:
+                # Rename to meaningful timestamped name
+                try:
+                    os.rename(output_path, meaningful_path)
+                    output_path = meaningful_path
+                except:
+                    pass  # If rename fails, use original temp path
+                
                 rag_status = " (with RAG context)" if use_rag and self.rag_processor.chunks else ""
-                return output_path, f"✅ Presentation created successfully! ({num_slides} slides){rag_status}"
+                return output_path, f"✅ Presentation created successfully! ({num_slides} slides){rag_status}\n📁 File: {os.path.basename(output_path)}"
             else:
                 return None, "❌ Failed to generate presentation"
                 
@@ -96,9 +112,13 @@ class PPTMakerWeb:
             if not self.generator.test_ollama_connection():
                 return None, "❌ Cannot connect to Ollama. Please make sure Ollama is running with: ollama serve"
             
-            # Create temporary output file
+            # Create temporary output file with meaningful name
+            improved_name = get_improved_filename(uploaded_ppt.name)
             with tempfile.NamedTemporaryFile(suffix='_improved.pptx', delete=False) as tmp_file:
                 output_path = tmp_file.name
+            
+            # Rename to have a meaningful timestamped name for download
+            meaningful_path = os.path.join(os.path.dirname(output_path), improved_name)
             
             # Improve the presentation
             improve_ppt(
@@ -108,7 +128,14 @@ class PPTMakerWeb:
                 embed_model="nomic-embed-text"
             )
             
-            return output_path, "✅ Presentation improved successfully! Content has been analyzed and enhanced."
+            # Rename to meaningful timestamped name
+            try:
+                os.rename(output_path, meaningful_path)
+                output_path = meaningful_path
+            except:
+                pass  # If rename fails, use original temp path
+            
+            return output_path, f"✅ Presentation improved successfully! Content has been analyzed and enhanced.\n📁 File: {os.path.basename(output_path)}"
                 
         except Exception as e:
             error_msg = f"❌ Error improving presentation: {str(e)}"
@@ -173,17 +200,17 @@ class PPTMakerWeb:
                                 label="Enhance Content (more detailed but slower)"
                             )
                             
-                            # RAG Section
-                            with gr.Accordion("📚 RAG - Use Reference Materials", open=False):
+                            # Reference Materials Section
+                            with gr.Accordion("📚 Upload Layout or Old PPT for Reference", open=False):
                                 gr.Markdown("Upload files (PPT, PDF, TXT) or provide URLs to use as context for your presentation")
                                 
                                 use_rag_input = gr.Checkbox(
                                     value=False,
-                                    label="Enable RAG (Retrieval-Augmented Generation)"
+                                    label="Use uploaded files/URLs as reference"
                                 )
                                 
                                 uploaded_files_input = gr.File(
-                                    label="Upload Reference Files",
+                                    label="Upload Layout/Template Files (PPT, PDF, TXT)",
                                     file_count="multiple",
                                     file_types=[".pptx", ".pdf", ".txt", ".md"],
                                     visible=False
@@ -371,7 +398,7 @@ def main():
     # Launch with public access
     interface.launch(
         server_name="localhost",  # Allow external access
-        server_port=7860,
+        server_port=7861,
         share=True,  # Create public link
         show_error=True
     )

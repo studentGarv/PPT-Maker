@@ -8,7 +8,7 @@ import argparse
 import sys
 import os
 from ppt_generator import PPTGenerator
-from config import DEFAULT_SLIDES_COUNT, DEFAULT_OUTPUT_FILE, MAX_SLIDES_COUNT, MIN_SLIDES_COUNT, DEFAULT_MODEL
+from config import DEFAULT_SLIDES_COUNT, MAX_SLIDES_COUNT, MIN_SLIDES_COUNT, DEFAULT_MODEL, get_default_output_file
 
 
 def main():
@@ -35,8 +35,8 @@ Current default model: {DEFAULT_MODEL}
     
     parser.add_argument(
         "-o", "--output",
-        default=DEFAULT_OUTPUT_FILE,
-        help=f"Output filename (default: {DEFAULT_OUTPUT_FILE})"
+        default=None,  # Will be set to timestamped name if not provided
+        help="Output filename (default: auto-generated with timestamp)"
     )
     
     parser.add_argument(
@@ -149,9 +149,18 @@ Current default model: {DEFAULT_MODEL}
         print(f"Using model: {args.model}")
         print(f"Ollama URL: {args.ollama_url}")
         print(f"Slides: {args.slides}")
+        
+        # Set default output filename if not provided
+        if not args.output:
+            args.output = get_default_output_file()
+        
         print(f"Output: {args.output}")
         print(f"Enhance content: {not args.no_enhance}")
         print()
+    else:
+        # Set default output filename if not provided
+        if not args.output:
+            args.output = get_default_output_file()
     
     # Generate presentation
     print(f"🚀 Generating presentation: '{args.prompt}'")

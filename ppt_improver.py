@@ -8,7 +8,8 @@ import ollama  # Uses installed ollama client
 
 # Import config for default models
 try:
-    from config import DEFAULT_MODEL
+    from config import MODEL_NAME, get_improved_filename
+    DEFAULT_MODEL = MODEL_NAME
     DEFAULT_EMBED_MODEL = "nomic-embed-text"
 except ImportError:
     DEFAULT_MODEL = "gpt-oss:20b"
@@ -312,7 +313,8 @@ if __name__ == "__main__":
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  %(prog)s input.pptx output.pptx
+  %(prog)s input.pptx                    # Auto-generates timestamped output
+  %(prog)s input.pptx output.pptx        # Specify output filename
   %(prog)s old.pptx improved.pptx --outline-model llama3
   %(prog)s presentation.pptx enhanced.pptx --embed-model all-minilm --threshold 0.9
         """
@@ -325,7 +327,8 @@ Examples:
     
     parser.add_argument(
         "output_path",
-        help="Path for the improved PowerPoint file"
+        nargs='?',  # Make optional
+        help="Path for the improved PowerPoint file (default: auto-generated with timestamp)"
     )
     
     parser.add_argument(
@@ -359,6 +362,18 @@ Examples:
     )
     
     args = parser.parse_args()
+    
+    # Auto-generate output filename if not provided
+    if not args.output_path:
+        try:
+            from config import get_improved_filename
+            args.output_path = get_improved_filename(args.input_path)
+        except ImportError:
+            # Fallback to simple naming
+            from datetime import datetime
+            base_name = Path(args.input_path).stem
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            args.output_path = f"{base_name}_improved_{timestamp}.pptx"
     
     # Validate input file exists
     if not os.path.exists(args.input_path):
