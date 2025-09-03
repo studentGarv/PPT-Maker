@@ -4,12 +4,7 @@ import tempfile
 from ppt_generator import PPTGenerator
 from rag_processor import RAGProcessor
 from ppt_improver import improve_ppt
-from config import DEFAULT_MODEL, get_timestam                                urls_input = gr.Textbox(
-                                    label="Reference URLs (one per line)",
-                                    placeholder="https://example.com/reference-material\nhttps://another-site.com/layout",
-                                    lines=3,
-                                    visible=False
-                                )lename, get_improved_filename
+from config import DEFAULT_MODEL, get_timestamped_filename, get_improved_filename
 import traceback
 
 class PPTMakerWeb:
@@ -30,11 +25,11 @@ class PPTMakerWeb:
             if not self.generator.test_ollama_connection():
                 return None, "❌ Cannot connect to Ollama. Please make sure Ollama is running with: ollama serve"
             
-            # Process RAG context if enabled
+            # Process uploaded reference materials if enabled
             enhanced_prompt = prompt
             if use_rag:
                 try:
-                    print("🔍 Processing RAG context...")
+                    print("🔍 Processing uploaded reference materials...")
                     
                     # Clear previous RAG cache
                     self.rag_processor.clear_cache()
@@ -58,10 +53,10 @@ class PPTMakerWeb:
                         enhanced_prompt = self.rag_processor.generate_context_prompt(prompt, relevant_chunks)
                         print(f"Enhanced prompt with {len(relevant_chunks)} relevant chunks")
                     else:
-                        print("No RAG context found, using original prompt")
+                        print("No reference content found, using original prompt")
                         
                 except Exception as e:
-                    print(f"RAG processing error: {e}")
+                    print(f"Reference processing error: {e}")
                     print("Continuing with original prompt...")
             
             # Create temporary file with timestamped name
@@ -92,7 +87,7 @@ class PPTMakerWeb:
                 except:
                     pass  # If rename fails, use original temp path
                 
-                rag_status = " (with RAG context)" if use_rag and self.rag_processor.chunks else ""
+                rag_status = " (using uploaded references)" if use_rag and self.rag_processor.chunks else ""
                 return output_path, f"✅ Presentation created successfully! ({num_slides} slides){rag_status}\n📁 File: {os.path.basename(output_path)}"
             else:
                 return None, "❌ Failed to generate presentation"
@@ -202,7 +197,7 @@ class PPTMakerWeb:
                             
                             # Reference Materials Section
                             with gr.Accordion("📚 Upload Layout or Old PPT for Reference", open=False):
-                                gr.Markdown("Upload files (PPT, PDF, TXT) or provide URLs to use as context for your presentation")
+                                gr.Markdown("Upload existing presentations, templates, or documents to use as inspiration and context for your new presentation")
                                 
                                 use_rag_input = gr.Checkbox(
                                     value=False,
@@ -223,7 +218,7 @@ class PPTMakerWeb:
                                     visible=False
                                 )
                                 
-                                # Show/hide RAG inputs based on checkbox
+                                # Show/hide reference upload inputs based on checkbox
                                 def toggle_rag_inputs(use_rag):
                                     return gr.update(visible=use_rag), gr.update(visible=use_rag)
                                 
