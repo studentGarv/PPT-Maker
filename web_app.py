@@ -180,6 +180,10 @@ class PPTMakerWeb:
             gr.Markdown(f"**Default AI Model:** {DEFAULT_MODEL} | **Embedding Model:** nomic-embed-text")
             gr.Markdown(f"**{self.get_ai_provider_info()}**")
             
+            # Show performance tip for LM Studio
+            if self.ai_info['provider'] == 'lm_studio':
+                gr.Markdown("⚡ **Performance Tip:** Large models (like GPT OSS 20B) may take 2-5 minutes to generate presentations. Consider using fewer slides for faster results.")
+            
             with gr.Tabs():
                 # Tab 1: Create New Presentation
                 with gr.Tab("📄 Create New Presentation"):
@@ -312,16 +316,32 @@ class PPTMakerWeb:
                     with gr.Row():
                         with gr.Column():
                             gr.Markdown("### Current Configuration")
-                            gr.Markdown(f"""
+                            
+                            # Show provider-specific settings
+                            provider_info = f"""
+                            **Current AI Provider:** {self.ai_info['provider'].title()}
+                            **Connection Status:** {'✅ Connected' if self.ai_info['connected'] else '❌ Disconnected'}
+                            
                             **Default Settings:**
                             - **Text Generation Model:** `{DEFAULT_MODEL}`
                             - **Embedding Model:** `nomic-embed-text`
                             - **Default Slides:** 8
                             - **Max Slides:** 20
-                            - **Ollama URL:** http://localhost:11434
+                            """
                             
-                            **Available Models:**
-                            """)
+                            if self.ai_info['provider'] == 'lm_studio':
+                                provider_info += f"""
+                            - **LM Studio URL:** {AI_PROVIDERS['lm_studio']['base_url']}
+                            - **Outline Timeout:** {AI_PROVIDERS['lm_studio']['timeout']['outline']//60} minutes
+                            - **Enhancement Timeout:** {AI_PROVIDERS['lm_studio']['timeout']['enhancement']//60} minutes
+                                """
+                            else:
+                                provider_info += f"""
+                            - **Ollama URL:** {AI_PROVIDERS['ollama']['base_url']}
+                                """
+                            
+                            gr.Markdown(provider_info)
+                            gr.Markdown("**Available Models:**")
                             
                             def get_model_list():
                                 try:

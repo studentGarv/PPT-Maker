@@ -4,7 +4,7 @@ from typing import List, Dict, Any, Optional
 from collections import Counter
 from dataclasses import dataclass
 from pptx import Presentation
-import ollama  # Uses installed ollama client
+from ai_client_manager import AIClientManager  # Use AI client manager instead of direct ollama
 
 # Import config for default models
 try:
@@ -82,13 +82,19 @@ def _cosine(a: List[float], b: List[float]) -> float:
     nb = math.sqrt(sum(y*y for y in b)) or 1e-9
     return dot / (na * nb)
 
-def _get_embedding(text: str, model: str, cache: Dict[str, List[float]]) -> List[float]:
+def _get_embedding(text: str, model: str, cache: Dict[str, List[float]], ai_client=None) -> List[float]:
     key = hashlib.sha256((model + "|" + text).encode()).hexdigest()
     if key in cache:
         return cache[key]
     try:
-        resp = ollama.embeddings(model=model, prompt=text)
-        emb = resp["embedding"]
+        if ai_client and hasattr(ai_client, 'client') and hasattr(ai_client.client, 'get_embedding'):
+            # Use AI client if available and supports embeddings
+            emb = ai_client.client.get_embedding(text, model)
+        else:
+            # Fallback to direct ollama for embeddings (most AI providers don't support embeddings via chat API)
+            import ollama
+            resp = ollama.embeddings(model=model, prompt=text)
+            emb = resp["embedding"]
     except Exception:
         emb = []
     cache[key] = emb
@@ -97,14 +103,15 @@ def _get_embedding(text: str, model: str, cache: Dict[str, List[float]]) -> List
 def deduplicate_with_embeddings(
     slides: List[SlideData],
     embed_model: str,
-    threshold: float = 0.85
+    threshold: float = 0.85,
+    ai_client=None
 ) -> List[SlideData]:
     cache: Dict[str, List[float]] = {}
     kept: List[SlideData] = []
     last_emb: Optional[List[float]] = None
     for s in slides:
         text = (s.title + " " + " ".join(s.bullets)).strip()
-        emb = _get_embedding(text, embed_model, cache)
+        emb = _get_embedding(text, embed_model, cache, ai_client)
         if last_emb is not None and emb:
             sim = _cosine(last_emb, emb)
             if sim >= threshold:
@@ -149,19 +156,45 @@ def _build_source_summary(slides: List[SlideData]) -> str:
 def generate_outline_llm(
     slides: List[SlideData],
     model: str,
-    fallback_fn
+    fallback_fn,
+    ai_client=None
 ) -> List[Dict[str, Any]]:
     source = _build_source_summary(slides)
     user_prompt = f"""Source extracted bullets:\n{source}\n\nGenerate improved outline JSON now."""
     try:
-        resp = ollama.chat(
-            model=model,
-            messages=[
+        if ai_client:
+            # Use AI client manager for multi-provider support
+            messages = [
                 {"role": "system", "content": LLM_OUTLINE_SYSTEM},
                 {"role": "user", "content": user_prompt}
             ]
-        )
-        content = resp["message"]["content"]
+            
+            # Check if the AI client has a chat method
+            if hasattr(ai_client.client, 'chat'):
+                resp = ai_client.client.chat(model=model, messages=messages)
+                content = resp["message"]["content"]
+            else:
+                # For LM Studio or other OpenAI-compatible APIs
+                data = {
+                    "model": model,
+                    "messages": messages,
+                    "temperature": 0.7,
+                    "max_tokens": 2000
+                }
+                resp = ai_client.client._make_request("chat/completions", data)
+                content = resp["choices"][0]["message"]["content"]
+        else:
+            # Fallback to direct ollama
+            import ollama
+            resp = ollama.chat(
+                model=model,
+                messages=[
+                    {"role": "system", "content": LLM_OUTLINE_SYSTEM},
+                    {"role": "user", "content": user_prompt}
+                ]
+            )
+            content = resp["message"]["content"]
+            
         json_match = re.search(r'\{.*\}', content, re.DOTALL)
         if not json_match:
             raise ValueError("No JSON found in model response")
@@ -298,10 +331,29 @@ def improve_ppt(
     3. Generate improved outline via LLM (JSON) with fallback
     4. Build new PPT
     """
+    # Initialize AI client manager with auto-detection
+    try:
+        ai_client = AIClientManager.auto_detect_provider()
+        print(f"🤖 Using AI provider: {ai_client.provider}")
+        
+        # Test connection
+        if not ai_client.test_connection():
+            print("⚠️ AI service connection failed, proceeding with heuristic analysis only")
+            ai_client = None
+    except Exception as e:
+        print(f"⚠️ Failed to initialize AI client: {e}")
+        print("⚠️ Proceeding with heuristic analysis only")
+        ai_client = None
+    
     prs = load_ppt(input_path)
     slides = extract_slides(prs)
-    slides = deduplicate_with_embeddings(slides, embed_model=embed_model, threshold=dedup_threshold)
-    outline = generate_outline_llm(slides, model=outline_model, fallback_fn=heuristic_outline)
+    
+    # Use AI client for deduplication if available
+    slides = deduplicate_with_embeddings(slides, embed_model=embed_model, threshold=dedup_threshold, ai_client=ai_client)
+    
+    # Use AI client for outline generation if available
+    outline = generate_outline_llm(slides, model=outline_model, fallback_fn=heuristic_outline, ai_client=ai_client)
+    
     build_new_ppt(outline, template, output_path)
 
 if __name__ == "__main__":

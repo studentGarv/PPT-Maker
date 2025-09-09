@@ -15,6 +15,13 @@ class LMStudioClient:
         self.api_url = f"{self.base_url}/v1"
         self._best_model = None  # Cache for best model selection
         
+        # Timeout settings from config
+        self.timeouts = AI_PROVIDERS["lm_studio"].get("timeout", {
+            "connection": 10,
+            "outline": 300,
+            "enhancement": 120
+        })
+        
     def get_model_to_use(self) -> str:
         """Get the model to use for API calls"""
         if self.model:
@@ -25,17 +32,20 @@ class LMStudioClient:
         
         return self._best_model
         
-    def _make_request(self, endpoint: str, data: dict) -> dict:
-        """Make a request to the LM Studio API"""
+    def _make_request(self, endpoint: str, data: dict, timeout: int = 180) -> dict:
+        """Make a request to the LM Studio API with configurable timeout"""
         url = f"{self.api_url}/{endpoint}"
         headers = {
             "Content-Type": "application/json"
         }
         
         try:
-            response = requests.post(url, json=data, headers=headers, timeout=60)
+            print(f"🔄 Making request to LM Studio (timeout: {timeout}s)...")
+            response = requests.post(url, json=data, headers=headers, timeout=timeout)
             response.raise_for_status()
             return response.json()
+        except requests.exceptions.Timeout as e:
+            raise Exception(f"LM Studio request timed out after {timeout}s. Try reducing slide count or using a faster model.")
         except requests.exceptions.RequestException as e:
             raise Exception(f"LM Studio API error: {e}")
     
@@ -43,7 +53,7 @@ class LMStudioClient:
         """Test connection to LM Studio server"""
         try:
             # Try to get available models
-            response = requests.get(f"{self.api_url}/models", timeout=5)
+            response = requests.get(f"{self.api_url}/models", timeout=self.timeouts["connection"])
             return response.status_code == 200
         except:
             return False
@@ -51,7 +61,7 @@ class LMStudioClient:
     def get_available_models(self) -> List[str]:
         """Get list of available models from LM Studio"""
         try:
-            response = requests.get(f"{self.api_url}/models", timeout=10)
+            response = requests.get(f"{self.api_url}/models", timeout=self.timeouts["connection"])
             if response.status_code == 200:
                 models_data = response.json()
                 return [model["id"] for model in models_data.get("data", [])]
@@ -167,7 +177,10 @@ Guidelines:
             }
             
             print(f"🤖 Using LM Studio model: {model_to_use}")
-            response = self._make_request("chat/completions", data)
+            print(f"⏱️ Generating outline for {num_slides} slides (this may take up to {self.timeouts['outline']//60} minutes for large models)...")
+            
+            # Use configured timeout for outline generation
+            response = self._make_request("chat/completions", data, timeout=self.timeouts["outline"])
             
             # Extract content from response
             content = response["choices"][0]["message"]["content"]
@@ -211,7 +224,7 @@ IMPORTANT: Return ONLY the enhanced bullet points, one per line, without bullet 
                 "max_tokens": 500
             }
             
-            response = self._make_request("chat/completions", data)
+            response = self._make_request("chat/completions", data, timeout=self.timeouts["enhancement"])  # Use configured timeout for content enhancement
             content = response["choices"][0]["message"]["content"]
             
             # Filter out any introductory text or unwanted phrases

@@ -11,7 +11,12 @@ AI_PROVIDERS = {
     "lm_studio": {
         "name": "LM Studio", 
         "base_url": "http://localhost:1234",
-        "default_model": "gpt-oss-20b"  # GPT OSS 20B as default
+        "default_model": "gpt-oss-20b",  # GPT OSS 20B as default
+        "timeout": {
+            "connection": 10,      # Connection test timeout
+            "outline": 300,        # Outline generation timeout (5 minutes)
+            "enhancement": 120     # Content enhancement timeout (2 minutes)
+        }
     }
 }
 
