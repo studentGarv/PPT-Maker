@@ -2,7 +2,7 @@ import requests
 import json
 import re
 from typing import List, Dict, Optional
-from config import DEFAULT_SLIDES_COUNT
+from config import DEFAULT_SLIDES_COUNT, AI_PROVIDERS
 
 
 class LMStudioClient:
@@ -10,7 +10,8 @@ class LMStudioClient:
     
     def __init__(self, base_url: str = "http://localhost:1234", model: str = None):
         self.base_url = base_url.rstrip('/')
-        self.model = model  # Specific model to use
+        # Use provided model or default from config
+        self.model = model or AI_PROVIDERS["lm_studio"]["default_model"]
         self.api_url = f"{self.base_url}/v1"
         self._best_model = None  # Cache for best model selection
         
@@ -93,14 +94,16 @@ class LMStudioClient:
         if not models:
             return "local-model"
         
-        # Priority order for presentation generation
+        # Priority order for presentation generation (GPT OSS 20B first)
         preferred_keywords = [
+            'gpt-oss-20b',     # GPT OSS 20B - highest priority
+            'gpt-oss',         # Other GPT OSS models
+            'gpt',             # GPT-style models
             'llama',           # Llama models are generally good for text generation
             'instruct',        # Instruction-tuned models
             'chat',            # Chat models work well for structured output
             'mistral',         # Mistral models are good for creative tasks
-            'qwen',            # Qwen models are capable
-            'gpt'              # GPT-style models
+            'qwen'             # Qwen models are capable
         ]
         
         # Filter out embedding models (not suitable for text generation)

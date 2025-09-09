@@ -77,8 +77,8 @@ pip install -r requirements_web.txt
 #### Option A: LM Studio Setup (Easier)
 1. Download and install LM Studio from [lmstudio.ai](https://lmstudio.ai)
 2. Launch LM Studio
-3. Go to **Search** tab and download a model (recommended: "Llama 3.1 8B Instruct")
-4. Go to **Chat** tab and load your downloaded model
+3. Go to **Search** tab and download the models(gpt-oss:20b and nomic-embed-text)
+4. Go to **Chat** tab and load your downloaded model 
 5. Go to **Local Server** tab and click **Start Server**
 6. ✅ PPT Maker will auto-detect LM Studio!
 

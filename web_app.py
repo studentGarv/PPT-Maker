@@ -11,12 +11,7 @@ import traceback
 class PPTMakerWeb:
     def __init__(self, ai_provider=None):
         # Initialize with auto-detection or specified provider
-        if ai_provider:
-            self.generator = PPTGenerator(ai_provider=ai_provider)
-        else:
-            # Auto-detect best available provider
-            self.generator = PPTGenerator()
-            
+        self.generator = PPTGenerator(ai_provider=ai_provider)
         self.rag_processor = RAGProcessor()
         
         # Get AI client info for display
@@ -44,7 +39,7 @@ class PPTMakerWeb:
             
             # Test AI service connection
             if not self.generator.test_connection():
-                return None, "❌ Cannot connect to AI service. Please check that your AI service is running."
+                return None, "❌ Cannot connect to AI service. Please check that your AI service (Ollama or LM Studio) is running."
             
             # Process uploaded reference materials if enabled
             enhanced_prompt = prompt
@@ -89,8 +84,8 @@ class PPTMakerWeb:
             meaningful_path = os.path.join(os.path.dirname(output_path), timestamped_name)
             
             # Update model if different
-            if model_name != self.generator.ollama_client.model:
-                self.generator.ollama_client.model = model_name
+            if hasattr(self.generator.ai_client, 'model') and model_name != self.generator.ai_client.model:
+                self.generator.ai_client.model = model_name
             
             # Generate presentation with enhanced prompt
             success = self.generator.generate_presentation(
@@ -124,9 +119,9 @@ class PPTMakerWeb:
             if not uploaded_ppt:
                 return None, "❌ Please upload a PowerPoint file to improve"
             
-            # Test Ollama connection
-            if not self.generator.test_ollama_connection():
-                return None, "❌ Cannot connect to Ollama. Please make sure Ollama is running with: ollama serve"
+            # Test AI service connection
+            if not self.generator.test_connection():
+                return None, "❌ Cannot connect to AI service. Please check that your AI service (Ollama or LM Studio) is running."
             
             # Create temporary output file with meaningful name
             improved_name = get_improved_filename(uploaded_ppt.name)

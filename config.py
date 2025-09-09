@@ -11,7 +11,7 @@ AI_PROVIDERS = {
     "lm_studio": {
         "name": "LM Studio", 
         "base_url": "http://localhost:1234",
-        "default_model": None  # Uses loaded model
+        "default_model": "gpt-oss-20b"  # GPT OSS 20B as default
     }
 }
 

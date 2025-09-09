@@ -17,9 +17,6 @@ class PPTGenerator:
             ai_provider (str): AI provider ('ollama' or 'lm_studio')
             base_url (str): Base URL for the AI service
         """
-        # Use provided provider or default
-        provider = ai_provider or DEFAULT_AI_PROVIDER
-        
         # Prepare client configuration
         client_config = {}
         if base_url:
@@ -29,10 +26,16 @@ class PPTGenerator:
         
         # Initialize AI client manager
         try:
-            self.ai_client = AIClientManager.create_client(provider, **client_config)
+            if ai_provider:
+                # Use specified provider
+                self.ai_client = AIClientManager.create_client(ai_provider, **client_config)
+            else:
+                # Auto-detect best available provider
+                self.ai_client = AIClientManager.auto_detect_provider(**client_config)
         except Exception as e:
-            print(f"⚠️ Error with {provider}, trying auto-detection: {e}")
-            self.ai_client = AIClientManager.auto_detect_provider(**client_config)
+            print(f"⚠️ Error initializing AI client: {e}")
+            # Fallback to Ollama as default
+            self.ai_client = AIClientManager.create_client(DEFAULT_AI_PROVIDER, **client_config)
         
         self.pptx_generator = PPTXGenerator()
     
