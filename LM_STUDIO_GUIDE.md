@@ -1,44 +1,3 @@
-# LM Studio Integration Guide
-
-## Overview
-
-PPT Maker now supports **LM Studio** as an alternative to Ollama for AI-powered presentation generation. LM Studio provides a user-friendly way to run large language models locally with an OpenAI-compatible API.
-
-## What is LM Studio?
-
-LM Studio is a desktop application that allows you to run large language models locally on your machine. It provides:
-
-- Easy model downloading and management
-- User-friendly chat interface
-- Local OpenAI-compatible API server
-- Support for various model formats (GGUF, GGML)
-- No internet connection required for inference
-
-## Setup Instructions
-
-### 1. Install LM Studio
-
-1. Download LM Studio from [https://lmstudio.ai/](https://lmstudio.ai/)
-2. Install the application on your system (Windows, macOS, or Linux)
-3. Launch LM Studio
-
-### 2. Download a Model
-
-1. In LM Studio, go to the **Search** tab
-2. Search for a model (recommended: "Llama 3.1 8B" or "Mistral 7B")
-3. Click **Download** on your chosen model
-4. Wait for the download to complete
-
-### 3. Load and Start the Model
-
-1. Go to the **Chat** tab
-2. Select your downloaded model from the dropdown
-3. Click **Load Model**
-4. Go to the **Local Server** tab
-5. Click **Start Server** (default port: 1234)
-6. Ensure the server status shows "Running"
-
-### 4. Configure PPT Maker
 
 PPT Maker will automatically detect and use LM Studio if it's running. You can also explicitly specify LM Studio:
 
@@ -53,11 +12,6 @@ python ppt_maker.py "Your presentation topic" --provider lm_studio
 # Use custom URL
 python ppt_maker.py "Your presentation topic" --provider lm_studio --base-url http://localhost:1234
 ```
-
-#### Web Interface
-The web app will automatically detect and display the active AI provider at the top of the interface.
-
-## Usage Examples
 
 ### Basic Presentation Generation
 ```bash
@@ -106,16 +60,6 @@ PPT Maker will automatically try providers in this order:
 
 If both are running, LM Studio takes priority.
 
-## API Compatibility
-
-LM Studio provides an OpenAI-compatible API, which means:
-
-- Familiar API structure for developers
-- Easy integration with existing OpenAI code
-- Standard request/response format
-- Support for chat completions and embeddings (if model supports it)
-
-## Troubleshooting
 
 ### Common Issues
 
