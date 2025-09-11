@@ -324,4 +324,11 @@ python ppt_maker.py "AI Ethics" --provider lm_studio --output "ai_ethics_lm.pptx
 python ppt_maker.py "AI Ethics" --provider ollama --output "ai_ethics_ollama.pptx"
 ```
 
+## Tools Used(Special Thanks To)
+
+- Ollama — local LLM runtime for downloading and running models (development and demo). [https://ollama.com](https://ollama.com)[ref]  
+- LM Studio — desktop app and local server for running GGUF models and experimenting with prompts. [https://lmstudio.ai](https://lmstudio.ai)[ref]
+-
+
+
 **🎯 PPT Maker - Transform your ideas into professional presentations with AI!**

@@ -1,8 +1,4 @@
 #!/usr/bin/env python3
-"""
-PPT Maker - Command Line Interface
-Generate PowerPoint presentations from text prompts using AI (Ollama or LM Studio)
-"""
 
 import argparse
 import sys

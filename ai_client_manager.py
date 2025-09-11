@@ -84,9 +84,9 @@ class AIClientManager:
         except Exception as e:
             print(f"❌ Ollama not available: {e}")
         
-        # If neither works, return Ollama as default (will show appropriate error)
-        print("⚠️ No AI provider detected, defaulting to Ollama")
-        return cls.create_client(cls.PROVIDER_OLLAMA, **kwargs)
+        # If neither works(will show error)
+        print("⚠️ No AI provider detected")
+        # return cls.create_client(cls.PROVIDER_OLLAMA, **kwargs)
 
 
 def get_client_info(client_manager: AIClientManager) -> Dict[str, any]:
